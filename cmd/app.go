@@ -27,13 +27,6 @@ type userPostQuery struct {
 	Offset int `json:"offset"`
 }
 
-type userPostOffsetQuery struct { 
-	UserName string `json:"user_name"`
-	Count int `json:"count"`
- 	Offset int `json:"offset"`
-
-}
-
 type userPostQueryRes struct {
 	Content string `json:"content"`
 	Title string `json:"title"`
@@ -58,7 +51,6 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, _ := context.WithCancel(context.Background())
 	user := r.FormValue("user")
 	pass := r.FormValue("pass")
-
 	dbRet, err := dbp.QueryForRow(ctx, "users", "user_name", user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -85,7 +77,6 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		ExpiresAt: time.Now().Add(auth.TokenTTL),
 	}
 	auth.StoreLock.Unlock()
-
 	fmt.Fprintln(w, token)
 }
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
