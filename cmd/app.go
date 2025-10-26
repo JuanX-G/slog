@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"slog-simple-blog/internal/auth"
@@ -16,7 +17,6 @@ import (
 
 type newPostQuery struct {
 	Author string `json:"author"`
-	Password string `json:"password"`
 	Title string `json:"title"`
 	Content string `json:"content"`
 }
@@ -160,14 +160,8 @@ func newPostHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	var userId int32
-	var passHash string
 	if len(userData) > 3 {
 		userId = userData[0].(int32)
-		passHash = userData[4].(string)
-	}
-	if err := pass.CheckPassword(passHash, reqB.Password); err != nil {
-		http.Error(w, fmt.Sprint("password error", err.Error()),  http.StatusInternalServerError)
-		return
 	}
 	var cols =  [...]string{"author_id", "content", "date_created", "tags"}
 
@@ -244,6 +238,11 @@ func newUserHandler(w http.ResponseWriter, req *http.Request) {
 
 
 func main() {
+	sPort := os.Getenv("SLOG_SERVER_PORT")
+	if sPort == "" {
+		fmt.Println("No port specified, falling back to 8109")
+		sPort = "8109"
+	}
 	dbp = dbUtil.InitPool()
 	if err := dbp.ConfigureDB(); err != nil {
 		panic(err)
@@ -253,5 +252,7 @@ func main() {
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/new_post", AuthMiddleware(newPostHandler))
 	http.HandleFunc("/logout", AuthMiddleware(auth.LogoutHandler))
-	http.ListenAndServe(":8080", nil)
+	if err := http.ListenAndServe(":" + sPort, nil); err != nil {
+		panic(err)
+	}
 }
