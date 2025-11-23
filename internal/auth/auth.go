@@ -9,16 +9,25 @@ import (
 	"time"
 )
 
+const TOKEN_TTL = time.Hour
+type AuthManager struct {
+	sessionStore map[string]Session
+	storeLock    sync.RWMutex
+}
+
+func NewAuthManager() *AuthManager {	
+	return &AuthManager{
+		sessionStore: make(map[string]Session),
+	}
+
+
+}
+
 type Session struct {
 	UserID    string
 	ExpiresAt time.Time
 }
 
-var (
-	SessionStore = make(map[string]Session)
-	StoreLock    sync.RWMutex
-	TokenTTL     = time.Hour
-)
 
 func GenerateToken() (string, error) {
 	bytes := make([]byte, 32) // 256 bits
@@ -28,12 +37,26 @@ func GenerateToken() (string, error) {
 	return hex.EncodeToString(bytes), nil
 }
 
-
-
-func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+func(a *AuthManager) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("X-Auth-Token")
-	StoreLock.Lock()
-	delete(SessionStore, token)
-	StoreLock.Unlock()
+	a.storeLock.Lock()
+	delete(a.sessionStore, token)
+	a.storeLock.Unlock()
 	fmt.Fprintln(w, "Logged out")
+}
+
+func(a *AuthManager) Login(token, userID string) {
+	a.storeLock.Lock()
+	a.sessionStore[token] = Session{
+		UserID:    userID,
+		ExpiresAt: time.Now().Add(TOKEN_TTL),
+	}
+	a.storeLock.Unlock()
+}
+
+func(a *AuthManager) LookupToken(token string) (session Session, ok bool) {
+	a.storeLock.RLock()
+	session, ok = a.sessionStore[token]
+	a.storeLock.RUnlock()
+	return
 }

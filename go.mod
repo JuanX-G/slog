@@ -3,6 +3,7 @@ module slog-simple-blog
 go 1.25.1
 
 require (
+	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.14.3 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
