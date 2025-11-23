@@ -21,7 +21,6 @@ func(a *App) HttpLogMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		log.Duration = metrics.Duration
 		a.Logger.LogStruct(log)
 
-		next.ServeHTTP(w, r)
 	}
 }
 

@@ -28,6 +28,10 @@ func(l Logger) LogsWatchdog() {
 	}
 }
 
+func (l Logger) Close() {
+	close(l.logChan)
+}
+
 func NewLogger() *Logger {
 	return &Logger{
 		logChan: make(chan logEntry, 100),

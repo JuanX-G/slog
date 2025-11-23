@@ -8,7 +8,7 @@ import (
 
 func HashPassword(pass string) (string, error) {
 	if len(pass) > 72 {
-		return "", errors.New("Passowrd to long, max length is 71")
+		return "", errors.New("Passowrd too long, max length is 72")
 	} 
 	b, err := bcrypt.GenerateFromPassword([]byte(pass), 12)
 	if err != nil {

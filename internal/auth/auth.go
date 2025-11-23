@@ -15,12 +15,26 @@ type AuthManager struct {
 	storeLock    sync.RWMutex
 }
 
+func(a *AuthManager) PurgeOutdatedTokens() {
+	a.storeLock.RLock()
+	var keysToPurge []string
+	for k, v := range a.sessionStore {
+		if time.Now().After(v.ExpiresAt) {
+			keysToPurge = append(keysToPurge, k)
+		}	
+	}
+	a.storeLock.RUnlock()
+	a.storeLock.Lock()
+	for _, e := range keysToPurge {
+		delete(a.sessionStore, e)
+	}
+	a.storeLock.Unlock()
+}
+
 func NewAuthManager() *AuthManager {	
 	return &AuthManager{
 		sessionStore: make(map[string]Session),
 	}
-
-
 }
 
 type Session struct {
@@ -40,6 +54,11 @@ func GenerateToken() (string, error) {
 func(a *AuthManager) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("X-Auth-Token")
 	a.storeLock.Lock()
+	_, f := a.sessionStore[token]
+	if !f {
+		fmt.Fprintln(w, "No such session found")
+		return
+	}
 	delete(a.sessionStore, token)
 	a.storeLock.Unlock()
 	fmt.Fprintln(w, "Logged out")

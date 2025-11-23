@@ -10,7 +10,8 @@ import (
 	passwordutils "slog-simple-blog/internal/passwordUtils"
 )
 func(a *App) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, _ := context.WithCancel(context.Background())
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second * 5)
+	defer cancel()
 	user := r.FormValue("user")
 	pass := r.FormValue("pass")
 	dbRet, err := a.DB.QueryForRow(ctx, "users", "user_name", user)
@@ -48,7 +49,5 @@ func(a *App) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			http.Error(w, "invalid or expired token", http.StatusUnauthorized)
 			return
 		}
-
-		next.ServeHTTP(w, r)
 	}
 }

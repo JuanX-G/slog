@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
+	"slog-simple-blog/internal/auth"
 	dbUtil "slog-simple-blog/internal/database"
 	logger "slog-simple-blog/internal/logger"
 	server "slog-simple-blog/server"
@@ -19,13 +21,22 @@ func main() {
 	app := &server.App{
 		DB: dbUtil.InitPool(),
 		Logger: logger.NewLogger(),
+		AuthManager: auth.NewAuthManager(),
 	}
+	defer app.Logger.Close()
+	go app.Logger.LogsWatchdog()
+	go func () {
+		ticker := time.NewTicker(time.Minute * 5)
+		for range ticker.C {
+			app.AuthManager.PurgeOutdatedTokens()
+		}
+	}()
+
 	http.HandleFunc("/get_user_posts", app.HttpLogMiddleware(app.UserPostHanlder))
 	http.HandleFunc("/new_user", app.HttpLogMiddleware(app.NewUserHandler))
 	http.HandleFunc("/login", app.HttpLogMiddleware(app.LoginHandler))
 	http.HandleFunc("/new_post", app.HttpLogMiddleware(app.AuthMiddleware((app.NewPostHandler))))
 	http.HandleFunc("/logout", app.HttpLogMiddleware(app.AuthMiddleware(app.AuthManager.LogoutHandler)))
-	go app.Logger.LogsWatchdog()
 	if err := http.ListenAndServe(":" + sPort, nil); err != nil {
 		panic(err)
 	}

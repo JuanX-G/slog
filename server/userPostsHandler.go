@@ -22,7 +22,7 @@ type userPostQueryRes struct {
 }
 
 func(a *App) UserPostHanlder(w http.ResponseWriter, req *http.Request) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithTimeout(req.Context(), time.Second * 5)
 	defer cancel()
 	body, err := io.ReadAll(req.Body)
 	if err != nil {

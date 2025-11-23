@@ -22,7 +22,7 @@ type newUserQueryRes struct {
 }
 
 func(a *App) NewUserHandler(w http.ResponseWriter, req *http.Request) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithTimeout(req.Context(), time.Second * 5)
 	defer cancel()
 	bd := req.Body
 	bodyB, err := io.ReadAll(bd)
@@ -39,7 +39,7 @@ func(a *App) NewUserHandler(w http.ResponseWriter, req *http.Request) {
 	reqB.DateCreated = time.Now()
 	var res newUserQueryRes
 
-	if len(reqB.UserName) < 2 {
+	if len(reqB.UserName) < 3 {
 		res.Response = "username too short, must be at least three characters"
 		b, _ := json.Marshal(res)
 		_, _ = w.Write(b)
@@ -55,7 +55,7 @@ func(a *App) NewUserHandler(w http.ResponseWriter, req *http.Request) {
 
 	_, err = a.DB.QueryForRow(ctx, "users", "user_name", reqB.UserName)
 	if err == nil {
-		res.Response = "Account with that email exists"
+		res.Response = "Account with that user name exists"
 		b, _ := json.Marshal(res)
 		_, _ = w.Write(b)
 		return

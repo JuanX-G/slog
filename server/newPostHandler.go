@@ -15,7 +15,7 @@ type newPostQuery struct {
 }
 
 func(a *App) NewPostHandler(w http.ResponseWriter, req *http.Request) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithTimeout(req.Context(), time.Second * 5)
 	defer cancel()
 	bd := req.Body
 	bodyB, err := io.ReadAll(bd)
@@ -29,8 +29,21 @@ func(a *App) NewPostHandler(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	if len(reqB.Title) < 3 {
+		http.Error(w, "Title too short, must be at least 3 characters", http.StatusBadRequest)
+		return
+	}
+	if len(reqB.Content) < 3 {
+		http.Error(w, "Content too short, must be at least 3 characters", http.StatusBadRequest)
+		return
+	}
+	if len(reqB.Content) > 800 {
+		http.Error(w, "Content too long, must be at most 800 characters", http.StatusBadRequest)
+		return
+	}
 	userData, err := a.DB.QueryForRow(ctx, "users", "user_name", reqB.Author)
 	if err != nil {
+		// todo fix error showing too much
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
