@@ -23,6 +23,9 @@ func main() {
 		Logger: logger.NewLogger(),
 		AuthManager: auth.NewAuthManager(),
 	}
+	if err := app.DB.ConfigureDB(); err != nil {
+		panic(err)
+	}
 	defer app.Logger.Close()
 	go app.Logger.LogsWatchdog()
 	go func () {
