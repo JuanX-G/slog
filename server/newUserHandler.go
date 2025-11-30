@@ -15,6 +15,7 @@ type newUserQuery struct {
 	Email string `json:"email"`
 	DateCreated time.Time 
 	Password string `json:"password"`
+	Description string `json:"description"`
 }
 
 type newUserQueryRes struct {
@@ -45,6 +46,13 @@ func(a *App) NewUserHandler(w http.ResponseWriter, req *http.Request) {
 		_, _ = w.Write(b)
 		return
 	}
+	if len(reqB.Description) > 200 {
+		res.Response = "Description too long, max is 200 characters"
+		b, _ := json.Marshal(res)
+		_, _ = w.Write(b)
+		return
+		
+	}
 	_, err = a.DB.QueryForRow(ctx, "users", "email", reqB.Email)
 	if err == nil {
 		res.Response = "Account with that email exists"
@@ -65,8 +73,8 @@ func(a *App) NewUserHandler(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	var cols = [...]string{"user_name", "email", "date_created", "password"}
-	err = a.DB.InsertInto(ctx, "users", cols[:], reqB.UserName, reqB.Email, reqB.DateCreated, hash)
+	var cols = [...]string{"user_name", "email", "date_created", "password", "description"}
+	err = a.DB.InsertInto(ctx, "users", cols[:], reqB.UserName, reqB.Email, reqB.DateCreated, hash, reqB.Description)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

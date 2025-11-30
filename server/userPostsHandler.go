@@ -19,6 +19,9 @@ type userPostQueryRes struct {
 	Content string `json:"content"`
 	Title string `json:"title"`
 	DatePosted time.Time `json:"date_posted"`
+	Tags string `json:"tags"`
+	Likes int32 `json:"likes"`
+	ID int32 `json:"id"`
 }
 
 func(a *App) UserPostHanlder(w http.ResponseWriter, req *http.Request) {
@@ -26,7 +29,7 @@ func(a *App) UserPostHanlder(w http.ResponseWriter, req *http.Request) {
 	defer cancel()
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "error occured processing the request body", http.StatusBadRequest)
 		return
 	}
 	var reqB userPostQuery
@@ -45,7 +48,7 @@ func(a *App) UserPostHanlder(w http.ResponseWriter, req *http.Request) {
 	}
 	posts, err := a.DB.QueryCountOffset(ctx, reqB.Count, reqB.Offset, "posts", "author_id", authorId)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "error occured in the database", http.StatusBadRequest)
 		return
 	}
 	var fRes []userPostQueryRes
@@ -54,6 +57,9 @@ func(a *App) UserPostHanlder(w http.ResponseWriter, req *http.Request) {
 		res.Content = v[2].(string)
 		res.DatePosted = v[3].(time.Time)
 		res.Title = v[4].(string)
+		res.Tags = v[5].(string)
+		res.Likes = v[6].(int32)
+		res.ID = v[0].(int32)
 		fRes = append(fRes, res)
 	}
 

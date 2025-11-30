@@ -49,5 +49,6 @@ func(a *App) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			http.Error(w, "invalid or expired token", http.StatusUnauthorized)
 			return
 		}
+		next(w, r)
 	}
 }
