@@ -1,11 +1,10 @@
 package app
 
-
 import (
-	"net/http"
 	"context"
 	"encoding/json"
 	"io"
+	"net/http"
 	"time"
 )
 
@@ -51,6 +50,7 @@ func(a *App) UserPostHanlder(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "error occured in the database", http.StatusBadRequest)
 		return
 	}
+	cols := []string{"post_id"}
 	var fRes []userPostQueryRes
 	for _, v := range posts {
 		var res userPostQueryRes
@@ -58,8 +58,12 @@ func(a *App) UserPostHanlder(w http.ResponseWriter, req *http.Request) {
 		res.DatePosted = v[3].(time.Time)
 		res.Title = v[4].(string)
 		res.Tags = v[5].(string)
-		res.Likes = v[6].(int32)
 		res.ID = v[0].(int32)
+		count, err := a.DB.CountWhere(ctx, "post_likes", cols, res.ID)
+		if err != nil {
+			panic(err)
+		}
+		res.Likes = count
 		fRes = append(fRes, res)
 	}
 

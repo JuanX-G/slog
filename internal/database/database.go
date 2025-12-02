@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -205,4 +206,51 @@ func (db *DB) QueryCountOffset(ctx context.Context, count int, offset int, table
 		return result, nil 
 	} 
 	return result[:count], nil 
+}
+
+func (d *DB) DeleteWhere(ctx context.Context, tableName string, cols []string, values... any) error {
+	if !isTableAllowed(tableName) {
+		return fmt.Errorf("table %s not allowed", tableName)
+	}
+	if !areColumnsAllowed(tableName, cols) {
+		return fmt.Errorf("columns %v not allowed for table %s", cols, tableName)
+	}
+	sqlQuery := fmt.Sprintf(`DELETE FROM %s `, tableName)
+	sqlQuery = fmt.Sprint(sqlQuery, "WHERE ")
+	for i, v := range cols {
+		if i != len(cols) - 1 { 
+			sqlQuery = fmt.Sprint(sqlQuery, v, " = $", strconv.Itoa(i + 1), " AND ") 
+		} else {
+			sqlQuery = fmt.Sprint(sqlQuery, v, " = $", strconv.Itoa(i + 1)) 
+		}
+	}
+	_, err := d.pool.Exec(ctx, sqlQuery, values...)
+	if err != nil {
+		return err
+	}	
+	return nil 
+}
+
+func (d *DB) CountWhere(ctx context.Context, tableName string, cols []string, values... any) (int32, error) {
+	if !isTableAllowed(tableName) {
+		return 0, fmt.Errorf("table %s not allowed", tableName)
+	}
+	if !areColumnsAllowed(tableName, cols) {
+		return 0, fmt.Errorf("columns %v not allowed for table %s", cols, tableName)
+	}
+	sqlQuery := fmt.Sprintf(`SELECT COUNT(*) FROM %s `, tableName)
+	sqlQuery = fmt.Sprint(sqlQuery, "WHERE ")
+	for i, v := range cols {
+		if i != len(cols) - 1 { 
+			sqlQuery = fmt.Sprint(sqlQuery, v, " = $", strconv.Itoa(i + 1), " AND ") 
+		} else {
+			sqlQuery = fmt.Sprint(sqlQuery, v, " = $", strconv.Itoa(i + 1)) 
+		}
+	}
+	var count int32
+	err := d.pool.QueryRow(ctx, sqlQuery, values...).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil 
 }

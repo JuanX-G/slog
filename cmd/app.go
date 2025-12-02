@@ -44,6 +44,7 @@ func main() {
 	http.HandleFunc("/logout", app.HttpLogMiddleware(app.AuthMiddleware(app.AuthManager.LogoutHandler)))
 	http.HandleFunc("/get_user_description", app.HttpLogMiddleware(app.GetUserProfileHandler))
 	http.HandleFunc("/submit_like", app.HttpLogMiddleware(app.AuthMiddleware(app.SubmitLikeHandler)))
+	http.HandleFunc("/delete_like", app.HttpLogMiddleware(app.AuthMiddleware(app.DeleteLikeHandler)))
 	if err := http.ListenAndServe(":" + sPort, nil); err != nil {
 		panic(err)
 	}

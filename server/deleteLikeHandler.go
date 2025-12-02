@@ -8,12 +8,8 @@ import (
 	"time"
 )
 
-type LikeQuery struct {
-	PostID int32 `json:"post_id"`
-	LikerID int32 `json:"liker_id"`
-}
 
-func(a App) SubmitLikeHandler(w http.ResponseWriter, req *http.Request) {
+func(a App) DeleteLikeHandler(w http.ResponseWriter, req *http.Request) {
 	ctx, cancel := context.WithTimeout(req.Context(), time.Second * 5)
 	defer cancel()
 	body, err := io.ReadAll(req.Body)
@@ -27,11 +23,11 @@ func(a App) SubmitLikeHandler(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "error reading the request content", http.StatusBadRequest)
 		return
 	}
-	var cols = []string{"user_id", "post_id", "created_at"}
-	err = a.DB.InsertInto(ctx, "post_likes", cols, reqB.LikerID, reqB.PostID, time.Now())	
+	var cols = []string{"user_id", "post_id"}
+	err = a.DB.DeleteWhere(ctx, "post_likes", cols, reqB.LikerID, reqB.PostID)	
 	if err != nil {
 		http.Error(w, "error executing the db query", http.StatusBadRequest)
 		return
 	}
-	w.Write([]byte("Like submitted"))
+	w.Write([]byte("post succesfully unliked"))
 }
