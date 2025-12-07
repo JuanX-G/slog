@@ -9,9 +9,9 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-func InitPool() *DB {
+func InitPool(dbPort string) *DB {
 	dbPassword := os.Getenv("DBpassword")
-	dbUrl := fmt.Sprintf("postgres://postgres:%s@localhost:5432/slog", dbPassword)
+	dbUrl := fmt.Sprintf("postgres://postgres:%s@localhost:" + dbPort + "/slog", dbPassword)
 	ctx := context.Background()
 	pool, err := pgxpool.Connect(ctx, dbUrl)
 	if err != nil {

@@ -3,32 +3,29 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"slog-simple-blog/internal/auth"
 	dbUtil "slog-simple-blog/internal/database"
 	logger "slog-simple-blog/internal/logger"
 	server "slog-simple-blog/server"
+	config "slog-simple-blog/internal/configUtil"
 )
-f
 
 func main() {
-	sPort := os.Getenv("SLOG_SERVER_PORT")
-	if sPort == "" {
-		fmt.Println("No port specified, falling back to 8109")
-		sPort = "8109"
-	}
 	app := &server.App{
-		DB: dbUtil.InitPool(),
+		Config: config.NewAppConfig(),
+		DB: &dbUtil.DB{},
 		Logger: logger.NewLogger(),
 		AuthManager: auth.NewAuthManager(),
 	}
-
+	app.Config.ParseConfig("./config.txt")
+	sPort := app.Config.ServerPort
+	app.DB = dbUtil.InitPool(app.Config.DBport)
 	if err := app.DB.ConfigureDB(); err != nil {
 		panic(err)
 	}
-
+	
 	defer app.Logger.Close()
 	go app.Logger.LogsWatchdog(true, false, "")
 	go func () {
@@ -38,6 +35,11 @@ func main() {
 		}
 	}()
 
+
+	if sPort == "" {
+		fmt.Println("No port specified, falling back to 8109")
+		sPort = "8109"
+	}
 	http.HandleFunc("/get_user_posts", app.HttpLogMiddleware(app.UserPostHanlder))
 	http.HandleFunc("/new_user", app.HttpLogMiddleware(app.NewUserHandler))
 	http.HandleFunc("/login", app.HttpLogMiddleware(app.LoginHandler))
@@ -46,8 +48,8 @@ func main() {
 	http.HandleFunc("/get_user_description", app.HttpLogMiddleware(app.GetUserProfileHandler))
 	http.HandleFunc("/submit_like", app.HttpLogMiddleware(app.AuthMiddleware(app.SubmitLikeHandler)))
 	http.HandleFunc("/delete_like", app.HttpLogMiddleware(app.AuthMiddleware(app.DeleteLikeHandler)))
+	app.Logger.LogString("Server running on: " + sPort + "\n")
 	if err := http.ListenAndServe(":" + sPort, nil); err != nil {
 		panic(err)
 	}
-	app.Logger.LogString("Server running on: " + sPort + "\n")
 }
