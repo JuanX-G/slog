@@ -12,12 +12,15 @@ compile and run; the HTTP server will be available on the port set in the SLOG_S
     - bug fixes
     - functions necessary for unliking and couting likes in the UMM-DAL (Ultra Minimal Modern - Data Access Layer) --- COUNT WHERE and DELETE WHERE
     - full end-point docs
+    - file based configs
 
 # Coming in 0.3
     - Update to the admin tools and stuff
 
 # Coming 0.3b
     - Query by: title, tags and more...
+
+# The setup of the config files is explained in docs/config.md
 
 # Later development will focus on SLOC --- Slog-Client
 
