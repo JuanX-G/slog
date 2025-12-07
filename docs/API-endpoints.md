@@ -41,7 +41,21 @@
 
 
 # Endpoints requiring auth
-/new_post
-/logout
-/submit_like
-/delete_like
+    - the auth token is to be sent with the header {"X-Auth-Token: <Session-Token>"}
+## /new_post
+### JSON query format:
+	- Author string
+	- Title string
+	- Content string 
+	- Tags string 
+### HTTP Raw response format:
+    - on succesful post creation will be: "Success" and code 200
+    - on failure will be: <error that occured> and appropriate error code
+## /logout
+    just query it with aproprieate headers
+## /submit_like
+    - PostID int32 
+    - LikerID int32
+## /delete_like
+    - PostID int32 
+    - LikerID int32

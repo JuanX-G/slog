@@ -11,6 +11,7 @@ import (
 	logger "slog-simple-blog/internal/logger"
 	server "slog-simple-blog/server"
 )
+f
 
 func main() {
 	sPort := os.Getenv("SLOG_SERVER_PORT")
