@@ -8,7 +8,7 @@ import (
 
 )
 type App struct  {
-	DB *dbUtil.DB
+	DB dbUtil.Database
 	Logger *logger.Logger
 	AuthManager *auth.AuthManager
 	Config *appConfig.AppConfig

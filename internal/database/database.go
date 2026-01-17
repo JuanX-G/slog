@@ -9,20 +9,31 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-func InitPool(dbPort string) *DB {
+
+/* db-interface for the repo-pattern */
+type Database interface {
+    ConfigureDB() error
+    InsertInto(ctx context.Context, table string, cols []string, values ...any) error
+    QueryForRow(ctx context.Context, table, col string, value any) ([]any, error)
+    QueryCountOffset(ctx context.Context, count int, offset int, table string, col string, value any) ([][]any, error)
+    CountWhere(ctx context.Context, table string, cols []string, values ...any) (int32, error)
+    DeleteWhere(ctx context.Context, table string, cols []string, values ...any) error
+}
+
+
+
+func InitPool(dbPort string) (Database, error) {
 	dbPassword := os.Getenv("DBpassword")
 	dbUrl := fmt.Sprintf("postgres://postgres:%s@localhost:" + dbPort + "/slog", dbPassword)
 	ctx := context.Background()
 	pool, err := pgxpool.Connect(ctx, dbUrl)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("Unable to connect to database: %v\n", err)
 	}
-	return  &DB{pool: pool}
+	return  &DB{pool: pool}, nil
 }
 
 
-/* db-object for the repo-pattern */
 type DB struct {
 	pool *pgxpool.Pool
 }
@@ -108,14 +119,14 @@ func (d *DB) InsertInto(ctx context.Context, tableName string, cols []string, va
 }
 
 type NotFoundError struct {
-	queryParam string
+	queryParam any
 }
 
 func (e NotFoundError) Error() string {
-	return e.queryParam
+	return e.queryParam.(string)
 }
 
-func(d *DB) QueryForRow(ctx context.Context, tableName string, col string, value string) ([]any, error) {
+func(d *DB) QueryForRow(ctx context.Context, tableName string, col string, value any) ([]any, error) {
 	if !isTableAllowed(tableName) {
 		return nil, fmt.Errorf("table %s not allowed", tableName)
 	}
@@ -253,4 +264,47 @@ func (d *DB) CountWhere(ctx context.Context, tableName string, cols []string, va
 		return 0, err
 	}
 	return count, nil 
+}
+
+func (d *DB) SelectAllWhere(ctx context.Context, tableName string, cols []string, values... any) ([][]any, error) {
+	if !isTableAllowed(tableName) {
+		return nil, fmt.Errorf("table %s not allowed", tableName)
+	}
+	sqlQuery := fmt.Sprintf(`INSERT INTO %s (`, tableName)
+	for i, v := range cols {
+		if i != len(cols) - 1 { 
+			sqlQuery = fmt.Sprint(sqlQuery, v, ", ") 
+		} else {
+			sqlQuery = fmt.Sprint(sqlQuery, v, ") VALUES (")
+		}
+	}
+	
+	for i := range values {
+		if i != len(values) - 1 { 
+			sqlQuery = fmt.Sprint(sqlQuery, "$", i + 1, ", ") 
+		} else {
+			sqlQuery = fmt.Sprint(sqlQuery, "$", i +1 , ");")
+		}
+	}
+	rows, err := d.pool.Query(ctx, sqlQuery, values...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var rVals [][]any
+	for (true) {
+		if f := rows.Next(); !f {
+			break;
+		}
+		aVals, err := rows.Values()
+		if err != nil {
+			return nil, err
+		}
+		rVals = append(rVals, aVals)
+	}
+	if len(rVals) == 0 {
+		return nil, fmt.Errorf("No such rows")
+	}
+	return rVals, nil
+
 }

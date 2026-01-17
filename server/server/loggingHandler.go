@@ -15,7 +15,7 @@ func(a *App) HttpLogMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			UserAgent: r.Header.Get("User-Agent"),
 			URL: r.URL.String(),
 		}
-		log.IP = requestGetRemoteAddress(r)
+		log.IP = RequestGetRemoteAddress(r)
 		metrics := httpsnoop.CaptureMetrics(next, w, r)
 		log.Code = metrics.Code
 		log.Duration = metrics.Duration
@@ -32,7 +32,7 @@ func ipAddrFromRemoteAddr(s string) string {
 	return s[:idx]
 }
 
-func requestGetRemoteAddress(r *http.Request) string {
+func RequestGetRemoteAddress(r *http.Request) string {
 		hdr := r.Header
 		hdrRealIP := hdr.Get("X-Real-Ip")
 		hdrForwardedFor := hdr.Get("X-Forwarded-For")

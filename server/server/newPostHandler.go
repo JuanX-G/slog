@@ -44,8 +44,7 @@ func(a *App) NewPostHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	userData, err := a.DB.QueryForRow(ctx, "users", "user_name", reqB.Author)
 	if err != nil {
-		// TODO: add mesage for not found
-		http.Error(w, "A server occured with the database", http.StatusInternalServerError)
+		http.Error(w, "An error occured with the database; user " + reqB.Author + "not found", http.StatusInternalServerError)
 		return
 	}
 	var userId int32
@@ -56,7 +55,7 @@ func(a *App) NewPostHandler(w http.ResponseWriter, req *http.Request) {
 
 	err = a.DB.InsertInto(ctx, "posts", cols[:], userId, reqB.Content, time.Now(), reqB.Title, reqB.Tags, 0)
 	if err != nil {
-		http.Error(w, "A server occured with the database", http.StatusInternalServerError)
+		http.Error(w, "An error occured with the database", http.StatusInternalServerError)
 		return
 	}
 	w.Write([]byte("Sucess"))

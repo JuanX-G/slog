@@ -14,7 +14,7 @@ type userPostQuery struct {
 	Offset int `json:"offset"`
 }
 
-type userPostQueryRes struct {
+type UserPostQueryRes struct {
 	Content string `json:"content"`
 	Title string `json:"title"`
 	DatePosted time.Time `json:"date_posted"`

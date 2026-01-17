@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"slog-simple-blog/internal/auth"
+	config "slog-simple-blog/internal/configUtil"
 	dbUtil "slog-simple-blog/internal/database"
 	logger "slog-simple-blog/internal/logger"
-	server "slog-simple-blog/server"
-	config "slog-simple-blog/internal/configUtil"
+	server "slog-simple-blog/server/server"
+	federation "slog-simple-blog/server/federation"
 )
 
 func main() {
@@ -21,7 +22,11 @@ func main() {
 	}
 	app.Config.ParseConfig("./config.txt")
 	sPort := app.Config.ServerPort
-	app.DB = dbUtil.InitPool(app.Config.DBport)
+	var err error
+	app.DB, err = dbUtil.InitPool(app.Config.DBport)
+	if err != nil {
+		panic(err)
+	}
 	if err := app.DB.ConfigureDB(); err != nil {
 		panic(err)
 	}
