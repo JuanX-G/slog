@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	queries "slog-simple-blog/internal/commonQueries"
 )
 
 type userPostQuery struct {
@@ -51,9 +53,9 @@ func(a *App) UserPostHanlder(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	cols := []string{"post_id"}
-	var fRes []userPostQueryRes
+	var fRes []queries.UserPostQueryRes
 	for _, v := range posts {
-		var res userPostQueryRes
+		var res queries.UserPostQueryRes
 		res.Content = v[2].(string)
 		res.DatePosted = v[3].(time.Time)
 		res.Title = v[4].(string)

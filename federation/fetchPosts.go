@@ -7,7 +7,7 @@ import (
 	"context"
 	"time"
 
-	server "slog-simple-blog/server/server"
+	queries "slog-simple-blog/internal/commonQueries"
 )
 
 type allPostsQuery struct {
@@ -25,20 +25,23 @@ func (f Federation) FetchPosts(w http.ResponseWriter, req http.Request) {
 	var reqB allPostsQuery
 	json.Unmarshal(body, &reqB)
 	db := **f.db
-	rows, err := db.SelectAllWhere(ctx, "posts", []string{"date_created"}, reqB.Since)
+	rows, err := db.SelectAll(ctx, "posts")
 	if err != nil {
 		http.Error(w, "error occured with the database", http.StatusBadRequest)
 		return
 	}
 	cols := []string{"post_id"}
-	var fRes []server.UserPostQueryRes
+	var fRes []queries.UserPostQueryRes
 	for _, v := range rows {
-		var res server.UserPostQueryRes
+		var res queries.UserPostQueryRes
 		res.Content = v[2].(string)
 		res.DatePosted = v[3].(time.Time)
 		res.Title = v[4].(string)
 		res.Tags = v[5].(string)
 		res.ID = v[0].(int32)
+
+		if res.DatePosted.Before(reqB.Since) {continue}
+
 		count, err := db.CountWhere(ctx, "post_likes", cols, res.ID)
 		if err != nil {
 			panic(err)

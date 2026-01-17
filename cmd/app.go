@@ -9,8 +9,8 @@ import (
 	config "slog-simple-blog/internal/configUtil"
 	dbUtil "slog-simple-blog/internal/database"
 	logger "slog-simple-blog/internal/logger"
-	server "slog-simple-blog/server/server"
-	federation "slog-simple-blog/server/federation"
+	server "slog-simple-blog/server"
+	federation "slog-simple-blog/federation"
 )
 
 func main() {
