@@ -4,7 +4,7 @@ set -euo pipefail
 PROJECT="slog-simple-blog"
 TAG="${1:?release tag required}"
 
-PI_HOST="$REMOTE_USR@$REMOTE_ADDR"
+PI_HOST="$RELEASE_REMOTE_USER@$RELEASE_REMOTE_ADDR"
 BASE_DIR="/var/www/releases/$PROJECT"
 RELEASE_DIR="$BASE_DIR/$TAG"
 CURRENT_LINK="$BASE_DIR/latest"
