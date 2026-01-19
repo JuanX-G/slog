@@ -11,7 +11,6 @@ echo "Building $APP_NAME (linux/amd64)"
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 
-# environment for deterministic builds
 export CGO_ENABLED=0
 export GOOS=linux
 export GOARCH=amd64
