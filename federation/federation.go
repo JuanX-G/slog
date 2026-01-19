@@ -7,11 +7,16 @@ import (
 
 type Federation struct {
 	knownServers map[string]federatedServer
-	db **database.DB
+	db **database.Database
+}
+
+func NewFederationMgr(db **database.Database) *Federation {
+	return &Federation{knownServers: make(map[string]federatedServer), db: db}
 }
 
 type federatedServer struct {
 	adress string
 	name string
 	lastSeen time.Time
+	lastSynced time.Time
 }

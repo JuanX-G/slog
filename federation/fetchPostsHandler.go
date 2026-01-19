@@ -39,7 +39,6 @@ func (f Federation) FetchPosts(w http.ResponseWriter, req http.Request) {
 		res.Title = v[4].(string)
 		res.Tags = v[5].(string)
 		res.ID = v[0].(int32)
-
 		if res.DatePosted.Before(reqB.Since) {continue}
 
 		count, err := db.CountWhere(ctx, "post_likes", cols, res.ID)

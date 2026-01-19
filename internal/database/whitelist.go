@@ -5,6 +5,7 @@ var (
         "users": {"id", "user_name", "email", "date_created", "password", "description"},
         "posts": {"id", "author_id", "content", "date_created", "title", "tags", "likes"},
         "post_likes": {"user_id", "post_id", "created_at"},
+	"foreign_posts": {"id", "content", "date_created", "title", "tags", "likes", "origin_server_addres"},
     }
 )
 
