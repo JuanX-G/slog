@@ -3,7 +3,7 @@ set -euo pipefail
 
 APP_NAME="slog-simple-blog"
 OUTPUT_DIR="dist"
-MAIN_PKG="./cmd/app"
+MAIN_PKG="./cmd/app.go"
 
 echo "Building $APP_NAME (linux/amd64)"
 
