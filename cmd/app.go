@@ -46,7 +46,7 @@ func main() {
 	var remoteSyncCancel func()
 	defer remoteSyncCancel()
 	go func() {
-		secsInInt64 := int64(app.Config.ForeignSyncInterval)
+		secsInInt64 := int64(app.Config.ForeignSyncIntervalSecs)
 		ticker := time.NewTicker(time.Duration(secsInInt64 * 1000000000))
 		for range ticker.C {
 			var ctx context.Context
