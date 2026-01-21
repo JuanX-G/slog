@@ -10,6 +10,7 @@ import (
 type AppConfig struct {
 	ServerPort string 
 	DBport string
+	ForeignSyncIntervalSecs int
 }
 
 func NewAppConfig() *AppConfig {
@@ -48,6 +49,15 @@ func(a *AppConfig) ParseConfig(fName string) error {
 				return  fmt.Errorf("invalid port number %d", dbPortInt)
 			}
 			a.DBport = val
+		case "foreign-sync-interval":
+			foreignSyncInterval, err := strconv.Atoi(val)
+			if err != nil {
+				return err
+			}
+			if foreignSyncInterval < 0 {
+				return  fmt.Errorf("invalid time interval %d", foreignSyncInterval)
+			}
+			a.ForeignSyncIntervalSecs = foreignSyncInterval 
 		}
 	}
 	return nil

@@ -1,16 +1,17 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
 
+	federation "slog-simple-blog/federation"
 	auth "slog-simple-blog/internal/auth"
 	config "slog-simple-blog/internal/configUtil"
 	dbUtil "slog-simple-blog/internal/database"
 	logger "slog-simple-blog/internal/logger"
 	server "slog-simple-blog/server"
-	federation "slog-simple-blog/federation"
 )
 
 func main() {
@@ -39,6 +40,18 @@ func main() {
 		ticker := time.NewTicker(time.Minute * 5)
 		for range ticker.C {
 			app.AuthManager.PurgeOutdatedTokens()
+		}
+	}()
+	
+	var remoteSyncCancel func()
+	defer remoteSyncCancel()
+	go func() {
+		secsInInt64 := int64(app.Config.ForeignSyncInterval)
+		ticker := time.NewTicker(time.Duration(secsInInt64 * 1000000000))
+		for range ticker.C {
+			var ctx context.Context
+			ctx, remoteSyncCancel = context.WithTimeout(context.Background(), time.Minute * 10)
+			app.FederationMgr.SyncPostsFromAll(ctx)
 		}
 	}()
 
